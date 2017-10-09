@@ -1,0 +1,6 @@
+[package]
+name = "piece_table"
+version = "0.1.0"
+authors = ["kenrick95 <kenrick95@gmail.com>"]
+
+[dependencies]
