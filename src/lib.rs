@@ -4,6 +4,13 @@ pub struct PieceTableEntry {
     length: u32,
     is_read_only: bool, // which buffer: read-only or buffer-only?
 }
+impl PartialEq for PieceTableEntry {
+    fn eq(&self, other: &PieceTableEntry) -> bool {
+        self.is_read_only == other.is_read_only &&
+            self.start == other.start &&
+            self.length == other.length
+    }
+}
 
 pub struct PieceTable {
     data: Vec<PieceTableEntry>, // TODO: seems not so correct as we need to traverse the whole entries for an operation?
@@ -71,14 +78,102 @@ mod tests {
     }
 
     #[test]
-    fn add_one_char_at_empty_buffer() {
+    fn add_string_at_empty() {
         let mut piece_table = PieceTable {
             data: Vec::new(),
             read_only_buffer: String::new(),
             append_only_buffer: String::new(),
         };
         piece_table.init();
-        piece_table.add("a", 0);
-        assert!(piece_table.append_only_buffer == "a");
+        piece_table.add("haha", 0);
+        assert!(piece_table.append_only_buffer == "haha");
+        
+        let expected_piece_table_data = vec![PieceTableEntry {
+            is_read_only: false,
+            start: 0,
+            length: 4
+        }];
+
+        assert_eq!(piece_table.data, expected_piece_table_data);
+    }
+
+
+    #[test]
+    fn add_string_at_start() {
+        let mut piece_table = PieceTable {
+            data: Vec::new(),
+            read_only_buffer: String::from("lorem"),
+            append_only_buffer: String::new(),
+        };
+        piece_table.init();
+        piece_table.add("hoho", 0);
+        assert!(piece_table.append_only_buffer == "hoho");
+        
+        let expected_piece_table_data = vec![PieceTableEntry {
+            is_read_only: true,
+            start: 0,
+            length: 4
+        }, PieceTableEntry {
+            is_read_only: false,
+            start: 0,
+            length: 5
+        }];
+
+        assert_eq!(piece_table.data, expected_piece_table_data);
+    }
+
+
+    #[test]
+    fn add_string_at_end() {
+        let mut piece_table = PieceTable {
+            data: Vec::new(),
+            read_only_buffer: String::from("lorem"),
+            append_only_buffer: String::new(),
+        };
+        piece_table.init();
+        piece_table.add("hoho", 5);
+        assert!(piece_table.append_only_buffer == "hoho");
+        
+        let expected_piece_table_data = vec![PieceTableEntry {
+            is_read_only: false,
+            start: 0,
+            length: 5
+        }, PieceTableEntry {
+            is_read_only: true,
+            start: 0,
+            length: 4
+        }];
+
+        assert_eq!(piece_table.data, expected_piece_table_data);
+    }
+
+
+
+    #[test]
+    fn add_string_at_middle() {
+        let mut piece_table = PieceTable {
+            data: Vec::new(),
+            read_only_buffer: String::from("lorem"),
+            append_only_buffer: String::new(),
+        };
+        piece_table.init();
+        piece_table.add("hoho", 2);
+        assert!(piece_table.append_only_buffer == "hoho");
+        
+        let expected_piece_table_data = vec![PieceTableEntry {
+            is_read_only: false,
+            start: 0,
+            length: 2
+        }, PieceTableEntry {
+            is_read_only: true,
+            start: 0,
+            length: 4
+        }, PieceTableEntry {
+            is_read_only: false,
+            start: 2,
+            length: 3
+        }];
+
+        assert_eq!(piece_table.data, expected_piece_table_data);
     }
 }
