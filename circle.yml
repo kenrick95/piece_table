@@ -1,0 +1,9 @@
+machine:
+  timezone:
+    Asia/Singapore
+  services:
+    - docker
+
+test:
+  override:
+    - docker run -it --rm -v $(pwd):/source -w /source scorpil/rust:1.20 cargo test
