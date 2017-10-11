@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct PieceTableEntry {
     start: u32,
     length: u32,
@@ -35,8 +35,23 @@ impl PieceTable {
         }
     }
 
+    fn find_entry_at_position(&self, position: u32) -> Option<PieceTableEntry> {
+        let mut cum = 0;
+        for elem in self.data.iter() {
+            cum += elem.length;
+            if cum >= position {
+                Some(elem);
+            }
+        }
+        None
+    }
+
     pub fn add(&mut self, new_string: &str, position: u32) {
         self.check_position_validity(position);
+
+        let relevantEntry = self.find_entry_at_position(position);
+
+        // need to split relevantEntry into 2, and then insert "new_string" in between
         
         self.data.push(PieceTableEntry {
             is_read_only: false,
