@@ -32,6 +32,7 @@ impl PieceTable {
         for elem in self.data.iter() {
             max_position += elem.length;
         }
+        // println!("max_position {}, position {}", max_position, position);
         if position > max_position {
             panic!("Position out of bound")
         }
@@ -41,7 +42,7 @@ impl PieceTable {
         let mut cum = 0;
         for (index, elem) in self.data.iter().enumerate() {
             if cum + elem.length >= position {
-                Some((elem, index, cum));
+                return Some((elem.clone(), index, cum));
             }
             cum += elem.length;
         }
@@ -64,34 +65,40 @@ impl PieceTable {
         let relevant_entry = self.find_entry_at_position(position);
 
         match relevant_entry {
-            Some((buffer_entry, index, cum)) => {
+            Some((ref buffer_entry, index, cum)) => {
                 let real_entry_start = cum;
                 let real_entry_end = cum + buffer_entry.length;
                 // need to split relevant_entry into 2, and then insert "new_string" in between
                 let first_piece_length = position - real_entry_start;
                 let last_piece_length = real_entry_end - position;
-                // TODO: Something wrong here
+                // println!("index {}, real_entry_start {}, position {}, real_entry_end {}", index, cum, position, real_entry_end);
 
                 self.data.remove(index);
 
+                let mut new_index = index;
+
                 if first_piece_length > 0 {
-                    self.data.insert(index, PieceTableEntry {
+                    self.data.insert(new_index, PieceTableEntry {
                         is_read_only: true,
                         start: buffer_entry.start,
                         length: first_piece_length,
                     });
+                    new_index += 1;
                 }
 
-                self.add_new_string_to_table(new_string, index);
+                self.add_new_string_to_table(new_string, new_index);
+                new_index += 1;
+
                 if last_piece_length > 0 {
-                    self.data.insert(index, PieceTableEntry {
+                    self.data.insert(new_index, PieceTableEntry {
                         is_read_only: true,
                         start: buffer_entry.start + first_piece_length,
-                        length: buffer_entry.length - last_piece_length,
+                        length: last_piece_length,
                     });
                 }
             }
             None => {
+                // println!("none?");
                 // Empty table, just add at back
                 self.add_new_string_to_table(new_string, 0);
             }
