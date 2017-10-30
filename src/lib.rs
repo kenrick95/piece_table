@@ -107,9 +107,24 @@ impl PieceTable {
     // pub fn delete(&self, position: u32, length: u32) {
     //     self.check_position_validity(position);
     // }
-    // pub fn char_at(&self, position: u32) {
-    //     self.check_position_validity(position);
-    // }
+    pub fn char_at(&self, position: u32) -> char {
+        self.check_position_validity(position);
+        let relevant_entry = self.find_entry_at_position(position);
+        match relevant_entry {
+            Some((ref buffer_entry, _index, cum)) => {
+                let pos = buffer_entry.start + position - cum;
+                println!("ahaha {}", pos);
+                if buffer_entry.is_read_only {
+                    return self.read_only_buffer.chars().nth(pos as usize).unwrap();
+                } else {
+                    return self.append_only_buffer.chars().nth(pos as usize).unwrap();
+                }
+            }
+            None => {
+                return '\0';
+            }
+        };
+    }
 }
 
 #[cfg(test)]
@@ -256,5 +271,26 @@ mod tests {
         ];
 
         assert_eq!(piece_table.data, expected_piece_table_data);
+    }
+
+    #[test]
+    fn char_at_init_state() {
+        let mut piece_table = PieceTable {
+            data: vec![
+                PieceTableEntry {
+                    is_read_only: true,
+                    start: 0,
+                    length: 5,
+                },
+            ],
+            read_only_buffer: String::from("lorem"),
+            append_only_buffer: String::new(),
+        };
+        piece_table.init();
+        assert_eq!(piece_table.char_at(0), 'l');
+        assert_eq!(piece_table.char_at(1), 'o');
+        assert_eq!(piece_table.char_at(2), 'r');
+        assert_eq!(piece_table.char_at(3), 'e');
+        assert_eq!(piece_table.char_at(4), 'm');
     }
 }
