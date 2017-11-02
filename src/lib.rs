@@ -19,20 +19,15 @@ pub struct PieceTable {
 
 impl PieceTable {
     pub fn init(&mut self) {
-        // Actually shoul've been empty
-        // self.data.push(PieceTableEntry {
-        //     is_read_only: true,
-        //     start: 0,
-        //     length: self.read_only_buffer.len() as u32
-        // })
+        // No-op, for now
     }
+
 
     fn check_position_validity(&self, position: u32) {
         let mut max_position = 0;
         for elem in self.data.iter() {
             max_position += elem.length;
         }
-        // println!("max_position {}, position {}", max_position, position);
         if position > max_position {
             panic!("Position out of bound")
         }
@@ -71,7 +66,6 @@ impl PieceTable {
                 // need to split relevant_entry into 2, and then insert "new_string" in between
                 let first_piece_length = position - real_entry_start;
                 let last_piece_length = real_entry_end - position;
-                // println!("index {}, real_entry_start {}, position {}, real_entry_end {}", index, cum, position, real_entry_end);
 
                 self.data.remove(index);
 
@@ -98,7 +92,6 @@ impl PieceTable {
                 }
             }
             None => {
-                // println!("none?");
                 // Empty table, just add at back
                 self.add_new_string_to_table(new_string, 0);
             }
@@ -113,7 +106,6 @@ impl PieceTable {
         match relevant_entry {
             Some((ref buffer_entry, _index, cum)) => {
                 let pos = buffer_entry.start + position - cum;
-                println!("ahaha {}", pos);
                 if buffer_entry.is_read_only {
                     return self.read_only_buffer.chars().nth(pos as usize).unwrap();
                 } else {
