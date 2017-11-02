@@ -2,5 +2,8 @@
 name = "piece_table"
 version = "0.1.0"
 authors = ["kenrick95 <kenrick95@gmail.com>"]
+description = "A simple piece table data strucutre in Rust"
+license = "MIT"
+repository = "https://github.com/kenrick95/piece_table"
 
 [dependencies]
