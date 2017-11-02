@@ -97,9 +97,48 @@ impl PieceTable {
             }
         }
     }
-    // pub fn delete(&self, position: u32, length: u32) {
-    //     self.check_position_validity(position);
-    // }
+    pub fn delete(&mut self, position: u32, length: u32) {
+        self.check_position_validity(position);
+
+        let relevant_entry = self.find_entry_at_position(position);
+
+        match relevant_entry {
+            Some((ref buffer_entry, index, cum)) => {
+                let real_entry_start = cum;
+                let real_entry_end = cum + buffer_entry.length;
+                // Split relevant entry into two
+                let first_piece_length = position - real_entry_start;
+
+                // Removing the 2nd piece's start length
+                let last_piece_start = buffer_entry.start + first_piece_length + length;
+                let last_piece_length = real_entry_end - position- length;
+
+                self.data.remove(index);
+
+                let mut new_index = index;
+
+                if first_piece_length > 0 {
+                    self.data.insert(new_index, PieceTableEntry {
+                        is_read_only: true,
+                        start: buffer_entry.start,
+                        length: first_piece_length,
+                    });
+                    new_index += 1;
+                }
+
+                if last_piece_length > 0 {
+                    self.data.insert(new_index, PieceTableEntry {
+                        is_read_only: true,
+                        start: last_piece_start,
+                        length: last_piece_length,
+                    });
+                }
+            }
+            None => {
+                // Empty table, do nothing (or throw error)
+            }
+        }
+    }
     pub fn char_at(&self, position: u32) -> char {
         self.check_position_validity(position);
         let relevant_entry = self.find_entry_at_position(position);
@@ -284,5 +323,38 @@ mod tests {
         assert_eq!(piece_table.char_at(2), 'r');
         assert_eq!(piece_table.char_at(3), 'e');
         assert_eq!(piece_table.char_at(4), 'm');
+    }
+
+    #[test]
+    fn delete_string_at_middle_on_read_only_buffer() {
+        let mut piece_table = PieceTable {
+            data: vec![
+                PieceTableEntry {
+                    is_read_only: true,
+                    start: 0,
+                    length: 10,
+                },
+            ],
+            read_only_buffer: String::from("loremipsum"),
+            append_only_buffer: String::new(),
+        };
+        piece_table.init();
+        piece_table.delete(5, 2);
+        assert!(piece_table.read_only_buffer == "loremipsum");
+
+        let expected_piece_table_data = vec![
+            PieceTableEntry {
+                is_read_only: true,
+                start: 0,
+                length: 5,
+            },
+            PieceTableEntry {
+                is_read_only: true,
+                start: 7,
+                length: 3,
+            },
+        ];
+
+        assert_eq!(piece_table.data, expected_piece_table_data);
     }
 }
